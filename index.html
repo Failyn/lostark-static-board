@@ -171,7 +171,10 @@ sup.alt{font-family:var(--mono);font-size:.56rem;font-weight:500;color:var(--acc
 
 /* schedule */
 .swrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table.s{border-collapse:collapse;width:100%;min-width:820px}
+table.s{border-collapse:collapse;width:100%;min-width:900px;table-layout:fixed}
+table.s col.cd{width:96px}table.s col.cr{width:150px}
+table.s th.p,table.s td.p{text-align:center;border-left:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+table.s td.p{padding:4px 5px}
 table.s th{font-family:var(--display);font-weight:600;font-size:.9rem;text-align:left;padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--line)}
 table.s td{padding:4px 8px;border-bottom:1px solid var(--line);font-size:.78rem;white-space:nowrap}
 table.s tr.today td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
@@ -187,7 +190,7 @@ table.s td.pl{font-weight:600;color:var(--ink)}
 .av.yes{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
 .av.unk{color:var(--muted)}
 table.s input{font-size:.74rem;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 4px;max-width:150px}
-table.s button.av{border:1px solid transparent;font-family:var(--body);text-align:center;width:100%;min-width:8.5em;max-width:11em;padding:1px 6px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.s button.av{display:block;margin:0 auto;border:1px solid transparent;font-family:var(--body);text-align:center;width:100%;max-width:11em;padding:1px 6px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 table.s button.av.unk{background:transparent}
 table.s button.av:hover{border-color:var(--line)}
 sup.nc.no{color:var(--bad)}
@@ -524,14 +527,14 @@ function schedule(){
   const {today, wed, end} = scheduleRange(), from = iso(wed), until = iso(end);
   const rows = S.days.map((d,i)=>[d,i]).filter(([d])=>d.date>=from && d.date<=until);
   const cols = PLAYERS.length + 2;
-  return `<div class="swrap"><table class="s"><tr><th>Day</th><th>Run</th>${PLAYERS.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>${rows.map(([d,i])=>{
+  return `<div class="swrap"><table class="s"><colgroup><col class="cd"><col class="cr">${PLAYERS.map(()=>"<col>").join("")}</colgroup><tr><th>Day</th><th>Run</th>${PLAYERS.map(p=>`<th class="p">${esc(p)}</th>`).join("")}</tr>${rows.map(([d,i])=>{
     let head = "";
     if (dayName(d.date)==="Wed"){
       const tue = new Date(d.date+"T12:00"); tue.setDate(tue.getDate()+6);
       head = `<tr class="wkrow"><td colspan="${cols}"><span class="rs">Reset</span> Wed ${ddmm(d.date)} – Tue ${ddmm(iso(tue))}${d.date===from?`<span class="now">this week</span>`:""}</td></tr>`;
     }
     const cls = d.date===iso(today)?"today":"";
-    return head + `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td>${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Weeks run from the Wednesday reset to Tuesday. Today is shaded.</p>`;
+    return head + `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td class="p">${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Weeks run from the Wednesday reset to Tuesday. Today is shaded.</p>`;
 }
 
 /* ---------- menu ---------- */
