@@ -133,13 +133,9 @@ table.g tr.done td:not(.ck){opacity:.38}
 .cell .cp{color:var(--accent-2)}
 table.g.fixed .cell{padding:4px 6px;gap:6px}
 table.g.fixed .cell .nm{font-size:.8rem}
-.ic{width:26px;height:26px;border-radius:50%;background:var(--chip);display:grid;place-items:center;flex-shrink:0;box-shadow:inset 0 0 0 2px var(--sc,var(--line))}
-/* icon look variants to compare (#sq1 / #sq2 in the link); default is the round ring */
-body.ic-sq1 .ic,body.ic-sq2 .ic{border-radius:5px;box-shadow:none;position:relative}
-body.ic-sq1 .ic{box-shadow:inset 0 -3px 0 var(--sc,var(--line))}
-body.ic-sq1 .ic img{margin-bottom:2px}
-body.ic-sq2 .ic::after{content:"";position:absolute;left:50%;bottom:-5px;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--sc,var(--line))}
-body.ic-sq2 .ic.sm::after{bottom:-4px;width:10px;margin-left:-5px;height:2px}
+/* square class icon; the bottom strip shows the synergy type */
+.ic{width:26px;height:26px;border-radius:5px;background:var(--chip);display:grid;place-items:center;flex-shrink:0;box-shadow:inset 0 -3px 0 var(--sc,var(--line))}
+.ic img{margin-bottom:2px}
 .ic.s-sup{--sc:var(--syn-sup)}.ic.s-crit{--sc:var(--syn-crit)}.ic.s-amp{--sc:var(--syn-amp)}.ic.s-back{--sc:var(--syn-back)}.ic.s-camp{--sc:var(--syn-camp)}.ic.s-ab{--sc:var(--syn-ab)}
 .ic img{width:22px;height:22px;display:block}
 .ic.sm{width:20px;height:20px}.ic.sm img{width:17px;height:17px}
@@ -672,8 +668,6 @@ app.addEventListener("change", e=>{
   const t = e.target;
   if (t.dataset.plan){ S.days[t.dataset.plan].plan = t.value.trim(); STORE.plan(+t.dataset.plan); }
 });
-const icLook = () => { document.body.classList.toggle("ic-sq1", location.hash === "#sq1"); document.body.classList.toggle("ic-sq2", location.hash === "#sq2"); };
-icLook(); addEventListener("hashchange", icLook);
 STORE.start();
 </script>
 
