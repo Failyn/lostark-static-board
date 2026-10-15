@@ -1,0 +1,16 @@
+{
+ "_comment": "lostark.bible roster pages the stats job reads (one request each, 20 s apart). 'main' is any character on that roster; 'alt' marks a player's second roster.",
+ "region": "CE",
+ "rosters": [
+  {"key": "Aleks", "main": "Cerydra"},
+  {"key": "Aleks_alt", "main": "Milksii", "alt": true},
+  {"key": "MS", "main": "Mvs"},
+  {"key": "Nadro", "main": "Chaeyeon"},
+  {"key": "Yaya", "main": "Yayagoboom"},
+  {"key": "Tuborg", "main": "Corkalom"},
+  {"key": "Flesh", "main": "Fleshrípped"},
+  {"key": "Swip0", "main": "Adoriijahad"},
+  {"key": "Wraith", "main": "Wraithphantom"},
+  {"key": "Wraith_alt", "main": "Wraithsdecree", "alt": true}
+ ]
+}
