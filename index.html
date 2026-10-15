@@ -83,7 +83,7 @@ button{cursor:pointer}
 
 /* grid view */
 .gwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table.g{border-collapse:collapse;width:100%;min-width:640px}
+table.g{border-collapse:collapse;width:100%;table-layout:fixed}
 table.g th{font-family:var(--display);font-weight:600;font-size:.9rem;text-align:left;padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
 table.g th.r,table.g td.r{text-align:right}
 table.g th.c,table.g td.c{text-align:center}
@@ -102,14 +102,6 @@ tr.drop-below td{box-shadow:inset 0 -3px 0 var(--accent)}
 .del.arm{width:auto;padding:0 5px;font-size:.62rem;font-family:var(--mono);color:var(--surface);background:var(--bad);border-color:var(--bad)}
 .addrow{margin-top:6px;width:100%;border:1px dashed var(--line);background:none;border-radius:8px;padding:7px;color:var(--muted);font-family:var(--mono);font-size:.74rem}
 .addrow:hover{color:var(--accent);border-color:var(--accent)}
-table.g.fixed.editing th.hd{width:30px}
-table.g.fixed.editing th:first-child{width:30px}
-table.g.fixed.editing th:nth-child(2){width:84px}
-table.g.fixed{table-layout:fixed;min-width:1040px}
-table.g.fixed th:first-child{width:84px}
-table.g.fixed th:last-child{width:52px}
-table.g.fixed.editing th:last-child{width:58px}
-table.g.fixed.editing th:nth-last-child(2){width:52px}
 .art{position:relative;display:block;width:calc(var(--n,1) * 62px + 8px);height:40px;border:none;border-radius:6px;overflow:hidden;padding:0;background:var(--surface-2)}
 .art:disabled{cursor:default}
 .edit .art:not(:disabled):hover{outline:2px solid var(--accent)}
@@ -133,8 +125,12 @@ table.g tr.done td:not(.ck){opacity:.38}
 .cell .sub .il{font-size:.72rem;color:var(--muted)}
 .cell .sub .il.low{color:var(--bad);font-weight:700}
 .cell .cp{color:var(--accent-2)}
-table.g.fixed .cell{padding:4px 6px;gap:6px}
-table.g.fixed .cell .nm{font-size:.8rem}
+table.g.eight .cell{padding:4px 6px;gap:6px}
+table.g.eight .cell .nm{font-size:.8rem}
+.picks{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}
+.pick{font-family:var(--mono);font-size:.66rem;background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--muted)}
+.pick.on{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:var(--accent);color:var(--accent)}
+.pick:disabled{opacity:.4;cursor:not-allowed}
 /* square class icon; the bottom strip shows the synergy type */
 .ic{width:26px;height:26px;border-radius:5px;background:var(--chip);display:grid;place-items:center;flex-shrink:0;box-shadow:inset 0 -3px 0 var(--sc,var(--line))}
 .ic img{margin-bottom:2px}
@@ -444,7 +440,8 @@ function upgrade(s){   // sheet / older saves: block raid + done[] -> party.runs
 const plabel = (b, pi) => (b.size===8 ? "8M" : b.id) + "." + (pi+1);   // A.1, B.3, 8M.2: always from row order
 const newParty = b => ({uid: Math.random().toString(36).slice(2,10), members:{}, group2:[], runs: b.size===8 ? [{k:"KazerosHM", done:false}] : [{k:"SercaHM", done:false}, {k:"Cath3", done:false}]});
 const isDone = p => p.runs.length && p.runs.every(r=>r.done);
-const blockPlayers = b => PLAYERS.filter(pl => b.cols.includes(pl) || b.parties.some(p => p.members[pl]));
+const blockPlayers = b => PLAYERS.filter(pl => b.cols.includes(pl));
+const maxCols = b => b.size===8 ? 8 : 6;
 
 /* ---------- board ---------- */
 function weekStrip(){
@@ -477,14 +474,18 @@ function gridBlock(b, bi){
       return `<td><button class="cell${c?"":" empty"}${g2?" g2":""}" data-cell="${bi}.${pi}.${esc(pl)}" ${edit?"":"disabled"}>${c?cellInner(c,rowGate(p)):(edit?"+":"")}</button></td>`;
     }).join("")}<td class="ck">${checks(bi,pi,p)}</td>${edit?`<td class="hd"><button class="del" data-del="${bi}.${pi}" title="Delete ${esc(plabel(b,pi))}">×</button></td>`:""}</tr>`).join("");
   const add = edit ? `<button class="addrow" data-add="${bi}" id="add-${bi}">+ Add run</button>` : "";
-  return `<div class="gwrap"><table class="g${b.size===8?" fixed":""}${edit?" editing":""}">${head}${rows}</table></div>${add}`;
+  const cg = `<colgroup>${edit?`<col style="width:30px">`:""}<col style="width:${b.size===8?84:146}px">${pls.map(()=>"<col>").join("")}<col style="width:${b.size===8?52:76}px">${edit?`<col style="width:40px">`:""}</colgroup>`;
+  const minW = (edit?70:0) + (b.size===8?136:222) + pls.length*(b.size===8?118:150);
+  return `<div class="gwrap"><table class="g${b.size===8?" eight":""}" style="min-width:${minW}px">${cg}${head}${rows}</table></div>${add}`;
 }
 function board(){
   let h = weekStrip();
   h += `<div class="legend"><span><i class="sup"></i> support</span><span><i class="sw"></i> second party in an 8-player group</span><span><sup class="alt">2</sup> second roster</span></div>`;
   S.blocks.forEach((b,bi)=>{
     const title = b.size===8 ? "8-man" : "Group "+b.id;
-    h += `<section class="block"><div class="block-h"><h2>${esc(title)}</h2><span class="meta">${b.parties.length} runs · ${b.size} players</span></div>${gridBlock(b,bi)}</section>`;
+    const picks = edit ? `<span class="picks" role="group" aria-label="Players in ${esc(title)}">${PLAYERS.map(pl=>{ const on = b.cols.includes(pl), full = !on && b.cols.length >= maxCols(b);
+      return `<button class="pick${on?" on":""}" data-col="${bi}" data-pl="${esc(pl)}" ${full?`disabled title="Up to ${maxCols(b)} players"`:""} aria-pressed="${on}">${esc(pl)}</button>`; }).join("")}</span>` : "";
+    h += `<section class="block"><div class="block-h"><h2>${esc(title)}</h2><span class="meta">${b.parties.length} runs · ${b.size} players</span>${picks}</div>${gridBlock(b,bi)}</section>`;
   });
   return h;
 }
@@ -492,7 +493,7 @@ function board(){
 /* ---------- roster ---------- */
 function roster(){
   const used = {};
-  S.blocks.forEach(b=>b.parties.forEach(p=>Object.values(p.members).forEach(id=>used[id]=(used[id]||0)+1)));
+  S.blocks.forEach(b=>b.parties.forEach(p=>blockPlayers(b).forEach(pl=>{ const id = p.members[pl]; if (id) used[id] = (used[id]||0) + 1; })));
   return `<div class="roster">${PLAYERS.map(pl=>{
     // top 6: characters in board runs first, then item level, then alphabetical
     const cs = SHEET.chars.filter(c=>c.player===pl).sort((a,b)=>(used[b.id]?1:0)-(used[a.id]?1:0) || Math.floor(b.il)-Math.floor(a.il) || nm(a).localeCompare(nm(b)));
@@ -651,6 +652,10 @@ app.addEventListener("click", e=>{
   const ck = e.target.closest("[data-ck]");   // clears: anyone, any time
   if (ck){ const [bi,pi,ci] = ck.dataset.ck.split(".").map(Number); const pa = S.blocks[bi].parties[pi], r = pa.runs[ci]; r.done = !r.done; STORE.clear(pa); render(); return; }
   if (!edit) return;
+  const pk = e.target.closest("[data-col]");
+  if (pk){ const b = S.blocks[pk.dataset.col], pl = pk.dataset.pl;
+    if (b.cols.includes(pl)) b.cols = b.cols.filter(x=>x!==pl); else if (b.cols.length < maxCols(b)) b.cols = PLAYERS.filter(x=>x===pl || b.cols.includes(x));
+    STORE.board(); render(); return; }
   const ad = e.target.closest("[data-add]");
   if (ad){ const b = S.blocks[ad.dataset.add]; b.parties.push(newParty(b)); STORE.board(); render(); return; }
   const dl = e.target.closest("[data-del]");
