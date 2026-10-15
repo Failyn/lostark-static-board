@@ -175,7 +175,9 @@ table.s{border-collapse:collapse;width:100%;min-width:820px}
 table.s th{font-family:var(--display);font-weight:600;font-size:.9rem;text-align:left;padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--line)}
 table.s td{padding:4px 8px;border-bottom:1px solid var(--line);font-size:.78rem;white-space:nowrap}
 table.s tr.today td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
-table.s tr.reset td{border-top:2px solid var(--line)}
+table.s tr.wkrow td{background:var(--surface-2);font-family:var(--mono);font-size:.68rem;color:var(--muted);padding:5px 8px;border-top:2px solid var(--line)}
+table.s tr.wkrow .rs{color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
+table.s tr.wkrow .now{margin-left:8px;padding:0 6px;border-radius:8px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 table.s td.d{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 table.s td.d b{color:var(--ink);font-weight:500;margin-right:6px;display:inline-block;width:2.9em}
 table.s td.pl{font-weight:600;color:var(--ink)}
@@ -301,16 +303,14 @@ function rebuild(){
   by("clears").forEach(r=>{ if (r.id.startsWith(wk + "_")) clears[r.id.slice(wk.length + 1)] = r.data; });
   for (const b of base.blocks) for (const p of b.parties) for (const r of p.runs)
     r.done = clears[p.uid] ? !!clears[p.uid][r.k] : (!seeded && !!r.done);
-  // three weeks from the last Wednesday, like the Schedule tab shows
+  // every day the Schedule tab shows (this reset week up to the one holding 31 December)
   const plan = {}, av = {};
   by("plan").forEach(r=>{ plan[r.id] = r.data.t || ""; });
   by("avail").forEach(r=>{ (av[r.id.slice(0,10)] ??= {})[r.id.slice(11)] = r.data.v; });
   const sheetDays = Object.fromEntries(SEED.days.map(d=>[d.date, d]));
-  const today = new Date(); today.setHours(0,0,0,0);
-  const wed = new Date(today); wed.setDate(today.getDate() - ((today.getDay()+4)%7));
-  const days = [];
-  for (let k = 0; k < 21; k++){
-    const dt = new Date(wed); dt.setDate(wed.getDate() + k); const ds = iso(dt);
+  const {wed, end} = scheduleRange(), days = [];
+  for (const dt = new Date(wed); dt <= end; dt.setDate(dt.getDate() + 1)){
+    const ds = iso(dt);
     days.push(seeded ? {date: ds, plan: plan[ds] || "", st: av[ds] || {}}
                      : {date: ds, plan: plan[ds] ?? sheetDays[ds]?.plan ?? "", st: Object.assign({}, sheetDays[ds]?.st, av[ds])});
   }
@@ -510,14 +510,28 @@ const planHtml = t => esc(t)
 // availability: each player sets their own, no Edit mode needed
 const avSelect = (d, i, p) => `<button class="av ${avKind(d.st[p])}" id="av-${i}-${p}" data-av="${i}" data-p="${esc(p)}" aria-label="${esc(p)} ${esc(d.date)}: ${esc(d.st[p]||"no note")}">${esc(d.st[p]||"·")}</button>`;
 const noteCount = d => Object.values(d.st).filter(Boolean).length;
-function schedule(){
+// reset weeks: Wednesday to Tuesday, from this week to the one that holds 31 December (at least 3 weeks)
+function scheduleRange(){
   const today = new Date(); today.setHours(0,0,0,0);
-  const wed = new Date(today); wed.setDate(today.getDate() - ((today.getDay()+4)%7));   // weekly reset: Wednesday
-  const from = iso(wed), until = iso(new Date(wed.getTime()+21*864e5));
-  const rows = S.days.map((d,i)=>[d,i]).filter(([d])=>d.date>=from && d.date<until);
+  const wed = new Date(today); wed.setDate(today.getDate() - ((today.getDay()+4)%7));
+  const end = new Date(today.getFullYear(), 11, 31);
+  end.setDate(end.getDate() + ((2 - end.getDay() + 7) % 7));                  // the Tuesday that closes that week
+  const min = new Date(wed); min.setDate(wed.getDate() + 20);
+  return {today, wed, end: end < min ? min : end};
+}
+const ddmm = s => s.slice(8) + "." + s.slice(5,7);
+function schedule(){
+  const {today, wed, end} = scheduleRange(), from = iso(wed), until = iso(end);
+  const rows = S.days.map((d,i)=>[d,i]).filter(([d])=>d.date>=from && d.date<=until);
+  const cols = PLAYERS.length + 2;
   return `<div class="swrap"><table class="s"><tr><th>Day</th><th>Run</th>${PLAYERS.map(p=>`<th>${esc(p)}</th>`).join("")}</tr>${rows.map(([d,i])=>{
-    const cls = [d.date===iso(today)?"today":"", dayName(d.date)==="Wed"&&d.date!==from?"reset":""].join(" ");
-    return `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td>${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Three weeks from the last Wednesday reset. Today is shaded.</p>`;
+    let head = "";
+    if (dayName(d.date)==="Wed"){
+      const tue = new Date(d.date+"T12:00"); tue.setDate(tue.getDate()+6);
+      head = `<tr class="wkrow"><td colspan="${cols}"><span class="rs">Reset</span> Wed ${ddmm(d.date)} – Tue ${ddmm(iso(tue))}${d.date===from?`<span class="now">this week</span>`:""}</td></tr>`;
+    }
+    const cls = d.date===iso(today)?"today":"";
+    return head + `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td>${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Weeks run from the Wednesday reset to Tuesday. Today is shaded.</p>`;
 }
 
 /* ---------- menu ---------- */
