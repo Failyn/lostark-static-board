@@ -16,20 +16,20 @@
 :root{
   --bg:#f2f4f7; --surface:#ffffff; --surface-2:#e9ecf1; --ink:#1b2130; --muted:#5b6472; --line:#d8dde4;
   --accent:#0d7a89; --accent-2:#a8791f; --good:#187a4f; --bad:#b8382f; --warn:#b06a12; --g2:rgba(13,122,137,.07);
-  --badge-s:52%; --badge-l:38%; --chip:#232a38; --syn-sup:#6aa84f; --syn-crit:#4a86e8; --syn-amp:#45818e; --syn-back:#e0ac1c; --syn-ab:#e69138; --hm:#c2621a; --nm:#7a4cc2; --c3:#b0505a; --nr:#3f7fae; --yb:#a8860a; --bb:#2f7fb8;
+  --badge-s:52%; --badge-l:38%; --chip:#232a38; --syn-sup:#6aa84f; --syn-crit:#4a86e8; --syn-amp:#45818e; --syn-back:#e0ac1c; --syn-ab:#e69138; --syn-camp:#674ea7; --hm:#c2621a; --nm:#7a4cc2; --c3:#b0505a; --nr:#3f7fae; --yb:#a8860a; --bb:#2f7fb8;
   --display:"Zilla Slab",Georgia,serif; --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#10131a; --surface:#171b24; --surface-2:#1f2430; --ink:#e8ebf1; --muted:#8b93a3; --line:#2a3040;
     --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f; --warn:#e0a14f; --g2:rgba(79,209,217,.07);
-    --badge-s:62%; --badge-l:66%; --chip:#262d3c; --syn-sup:#7cc25e; --syn-crit:#6a9ff0; --syn-amp:#5fa3b0; --syn-back:#f1c232; --syn-ab:#f0a050; --hm:#e0823a; --nm:#a07ae6; --c3:#e0868e; --nr:#7fb3dc; --yb:#e8c84e; --bb:#6cb8e6; color-scheme:dark;
+    --badge-s:62%; --badge-l:66%; --chip:#262d3c; --syn-sup:#7cc25e; --syn-crit:#6a9ff0; --syn-amp:#5fa3b0; --syn-back:#f1c232; --syn-ab:#f0a050; --syn-camp:#9b84dc; --hm:#e0823a; --nm:#a07ae6; --c3:#e0868e; --nr:#7fb3dc; --yb:#e8c84e; --bb:#6cb8e6; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#10131a; --surface:#171b24; --surface-2:#1f2430; --ink:#e8ebf1; --muted:#8b93a3; --line:#2a3040;
   --accent:#4fd1d9; --accent-2:#d9a94a; --good:#4caf7d; --bad:#e2685f; --warn:#e0a14f; --g2:rgba(79,209,217,.07);
-  --badge-s:62%; --badge-l:66%; --chip:#262d3c; --syn-sup:#7cc25e; --syn-crit:#6a9ff0; --syn-amp:#5fa3b0; --syn-back:#f1c232; --syn-ab:#f0a050; --hm:#e0823a; --nm:#a07ae6; --c3:#e0868e; --nr:#7fb3dc; --yb:#e8c84e; --bb:#6cb8e6; color-scheme:dark;
+  --badge-s:62%; --badge-l:66%; --chip:#262d3c; --syn-sup:#7cc25e; --syn-crit:#6a9ff0; --syn-amp:#5fa3b0; --syn-back:#f1c232; --syn-ab:#f0a050; --syn-camp:#9b84dc; --hm:#e0823a; --nm:#a07ae6; --c3:#e0868e; --nr:#7fb3dc; --yb:#e8c84e; --bb:#6cb8e6; color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.4;font-size:14px}
@@ -134,7 +134,7 @@ table.g tr.done td:not(.ck){opacity:.38}
 table.g.fixed .cell{padding:4px 6px;gap:6px}
 table.g.fixed .cell .nm{font-size:.8rem}
 .ic{width:26px;height:26px;border-radius:50%;background:var(--chip);display:grid;place-items:center;flex-shrink:0;box-shadow:inset 0 0 0 2px var(--sc,var(--line))}
-.ic.s-sup{--sc:var(--syn-sup)}.ic.s-crit{--sc:var(--syn-crit)}.ic.s-amp{--sc:var(--syn-amp)}.ic.s-back{--sc:var(--syn-back)}.ic.s-ab{--sc:var(--syn-ab)}
+.ic.s-sup{--sc:var(--syn-sup)}.ic.s-crit{--sc:var(--syn-crit)}.ic.s-amp{--sc:var(--syn-amp)}.ic.s-back{--sc:var(--syn-back)}.ic.s-camp{--sc:var(--syn-camp)}.ic.s-ab{--sc:var(--syn-ab)}
 .ic img{width:22px;height:22px;display:block}
 .ic.sm{width:20px;height:20px}.ic.sm img{width:17px;height:17px}
 .ic.lg{width:32px;height:32px}.ic.lg img{width:27px;height:27px}
@@ -246,7 +246,8 @@ const PLAYERS = SHEET.players;
 // Icon ring colour = party synergy type (colours from Aleks's sheet)
 const SYN = {
   sup:  ["Support", ["Bard","Artist","Valkyrie","Paladin"]],
-  crit: ["Crit synergy", ["Deadeye","Gunslinger","Wardancer","Valkyrie ⚔️","Glavier","Arcana","Aeromancer","Striker"]],
+  crit: ["Crit synergy", ["Deadeye","Gunslinger","Wardancer","Arcana","Aeromancer","Striker"]],
+  camp: ["Crit damage amp synergy", ["Valkyrie ⚔️","Glavier"]],
   amp:  ["Damage amp synergy", ["Scrapper","Berserker","Sorceress","Breaker","Guardianknight","Shadowhunter","Sharpshooter","Warpbeaver","Scouter","Souleater","Slayer","Soulfist"]],
   back: ["Back attack synergy", ["Gunlancer","Deathblade"]],
   ab:   ["Armor break synergy", ["Wildsoul"]]};
