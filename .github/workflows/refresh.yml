@@ -1,8 +1,14 @@
 name: Refresh character stats
 
-# Manual only for now: Actions tab -> "Refresh character stats" -> Run workflow.
+# Started once a day by the Supabase timer (timer.sql, with scheduled=true), or by hand:
+# Actions tab -> "Refresh character stats" -> Run workflow.
 on:
   workflow_dispatch:
+    inputs:
+      scheduled:
+        description: "Set by the daily timer: skip if stats are under 20 hours old"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
@@ -21,4 +27,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SCHEDULED: ${{ inputs.scheduled == 'true' && '1' || '0' }}
         run: python3 scripts/refresh.py
