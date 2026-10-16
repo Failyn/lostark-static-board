@@ -201,7 +201,7 @@ sup.nc{font-family:var(--mono);font-size:.5rem;font-weight:400;color:var(--warn)
 .menu .pre .x:hover{color:var(--bad)}
 .menu .custom{display:block;width:calc(100% - 8px);margin:6px 4px 2px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);font-size:.78rem}
 .menu .custom:focus{outline:none;border-color:var(--accent)}
-.rt{font-weight:700}.rt.ra{color:var(--good)}.rt.rb{color:var(--bb)}.rt.r8{color:var(--bad)}
+.rt{font-weight:700}.rt.ra{color:var(--good)}.rt.rb{color:var(--bb)}.rt.r8{color:var(--bad)}.rt.rbel{color:var(--hm)}
 table.s input{max-width:150px}
 
 /* char menu */
@@ -508,8 +508,9 @@ const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-$
 const dayName = s => ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(s+"T12:00").getDay()];
 // availability is free text (16 chars); its colour is guessed from the words
 const avKind = v => !v ? "unk" : /\b(not?|out|off|busy|away)\b/i.test(v) ? "no" : /\b(all|free|yes|any)\b/i.test(v) ? "yes" : "part";
-// run plan colours (as in Aleks's sheet): time plain, 8man red, A runs green, B runs blue; each stops at the next space
+// run plan colours (as in Aleks's sheet): time plain, 8man red, A runs green, B runs blue, Bel… (Belgardin) orange; each stops at the next space
 const planHtml = t => esc(t)
+  .replace(/(^|\s)(bel[^\s<]*)/gi, '$1<b class="rt rbel">$2</b>')
   .replace(/\b8\s?man\b/gi, m=>`<b class="rt r8">${m}</b>`)
   .replace(/(^|\s)(A(?:[.\d][^\s<]*)?)(?=\s|$)/g, '$1<b class="rt ra">$2</b>')
   .replace(/(^|\s)(B(?:[.\d][^\s<]*)?)(?=\s|$)/g, '$1<b class="rt rb">$2</b>');
