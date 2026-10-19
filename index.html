@@ -528,17 +528,22 @@ function scheduleRange(){
 }
 const ddmm = s => s.slice(8) + "." + s.slice(5,7);
 function schedule(){
-  const {today, wed, end} = scheduleRange(), from = iso(wed), until = iso(end);
+  const {today, wed, end} = scheduleRange(), until = iso(end), thisWed = iso(wed);
+  // a reset week drops out of view once no run is planned for today or later in it (its notes stay saved)
+  const tue = new Date(wed); tue.setDate(wed.getDate() + 6);
+  const runsLeft = S.days.some(d => d.date >= iso(today) && d.date <= iso(tue) && d.plan);
+  const start = new Date(wed); if (!runsLeft) start.setDate(wed.getDate() + 7);
+  const from = iso(start);
   const rows = S.days.map((d,i)=>[d,i]).filter(([d])=>d.date>=from && d.date<=until);
   const cols = PLAYERS.length + 2;
   return `<div class="swrap"><table class="s"><colgroup><col class="cd"><col class="cr">${PLAYERS.map(()=>"<col>").join("")}</colgroup><tr><th>Day</th><th>Run</th>${PLAYERS.map(p=>`<th class="p">${esc(p)}</th>`).join("")}</tr>${rows.map(([d,i])=>{
     let head = "";
     if (dayName(d.date)==="Wed"){
       const tue = new Date(d.date+"T12:00"); tue.setDate(tue.getDate()+6);
-      head = `<tr class="wkrow"><td colspan="${cols}"><span class="rs">Reset</span> Wed ${ddmm(d.date)} – Tue ${ddmm(iso(tue))}${d.date===from?`<span class="now">this week</span>`:""}</td></tr>`;
+      head = `<tr class="wkrow"><td colspan="${cols}"><span class="rs">Reset</span> Wed ${ddmm(d.date)} – Tue ${ddmm(iso(tue))}${d.date===thisWed?`<span class="now">this week</span>`:d.date===from?`<span class="now">next week</span>`:""}</td></tr>`;
     }
     const cls = d.date===iso(today)?"today":"";
-    return head + `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td class="p">${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Weeks run from the Wednesday reset to Tuesday. Today is shaded.</p>`;
+    return head + `<tr class="${cls}"><td class="d"><b>${dayName(d.date)}${noteCount(d)?`<sup class="nc${Object.values(d.st).some(v=>avKind(v)==="no")?" no":""}" title="${noteCount(d)} with a note">${noteCount(d)}</sup>`:""}</b>${d.date.slice(8)}.${d.date.slice(5,7)}</td><td class="pl">${edit?`<input id="plan-${i}" data-plan="${i}" value="${esc(d.plan)}" placeholder="—">`:planHtml(d.plan)}</td>${PLAYERS.map(p=>`<td class="p">${avSelect(d,i,p)}</td>`).join("")}</tr>`; }).join("")}</table></div><p class="proto">Weeks run from the Wednesday reset to Tuesday. A week is hidden once no runs are left in it; its notes stay saved.</p>`;
 }
 
 /* ---------- menu ---------- */
